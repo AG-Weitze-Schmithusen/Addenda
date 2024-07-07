@@ -13,7 +13,7 @@
 
 LoadPackage("ModularGroup");
 LoadPackage("Origami");
-Print("\nINFO:\n  This file presents the GAP functions used in the article [BKKMNSVW]. We use the GAP-packages [GAPOrigami] and  [GAPArithmetic].\n  You can run the functions Example1_AKZ(), Example2_AKZ(20), Example3_AKZ(20) and  Example4_AKZ() to obtain the results used in the article.\n\n");
+Print("\nINFO:\n  This file presents the GAP functions used in the article [BKKMNSVW]. We use the GAP-packages [GAPOrigami] and  [GAPArithmetic].\n  You can run the functions Example1_AKZ(), Example2_AKZ(20), Example3_AKZ(20), Example4_AKZ() and Example5_KZM() to obtain the results used in the article.\n\n");
 Print("\n---------------------\nBIBLIOGRAPHY:\n");
 Print("  [BKKMNSVW]  E. Bonnafoux, M. Kany, P. Kattler, C. Matheus, R. Niño, M. Sedano-Mendoza, F. Valdez, G. Weitze-Schmithüsen: Arithmeticity of the Kontsevich--Zorich monodromies of certain families of square-tiled surfaces. arXiv:2206.06595 [math.DS]\n");
 Print("  [DFH] A. Detinko, D. Flannery, A. Hulpke: Zariski Density and Computing in Arithmetic Groups. Math. Comp. 87 (2018), no. 310, 967–986.\n");
@@ -177,7 +177,7 @@ IntersectionFormForF7:= function( v, w )
 		res := res + ( v[i]* w[i + n]);
 	od;
 	for i in [(n+1)..(2*n)] do
-		res := res - ( v[i]* w[i - n]);
+res := res - ( v[i]* w[i - n]);
 	od;
 	return res;
 end;
@@ -230,6 +230,121 @@ DimensionKoZoMondoromy := function( O )
 	local A;
 	A :=	Algebra( Rationals, List( MatrixGeneratorsOfGroup(VeechGroup(O)), x-> ActionOfMatrixOnNonTaut(O, x  ) ) );
 	return Dimension( A ); #= (Genus(O)*2-2)^2;
+end;
+
+
+       
+
+# The following function presents the actions of the 6 Dehn-twists from section 5.1 of the article [BKKMNSVW] as matrices M_. The matrices depend on N, M and m for the square-
+# tiled surface O_{N,M} (M = 4+2*m, N > 0) and are given with respect to the basis B^(0) = {Sigma_i,Z_i} of the nontatutological part of the homology.
+# M_v_KZM gives action of the Dehn-twist in direction (0,1)
+# M_h_KZM gives action of the Dehn-twist in direction (1,0)
+# M_delta_KZM gives action of the Dehn-twist in direction (1,1)
+# M_chi_KZM gives action of the Dehn-twist in direction (1,-1)
+# M_gamma_KZM gives action of the Dehn-twist in direction (1,2)
+# M_alpha_KZM gives action of the Dehn-twist in direction (1,-2)
+#
+# Output: A record with the matrices, where the entries are polynomials in N, M and m
+M_KZM := function()
+	local P, N, M, m,  M_v_KZM, M_h_KZM, M_alpha_KZM, M_delta_KZM, M_chi_KZM, M_gamma_KZM;
+	P :=PolynomialRing( Integers, ["N", "M", "m"] ); 
+	N := IndeterminatesOfPolynomialRing(P)[1];
+	M := IndeterminatesOfPolynomialRing(P)[2];	
+	m := IndeterminatesOfPolynomialRing(P)[3];		
+	M_v_KZM :=  [ [1, 0, 0, 0, 0, 0 ], [0, 1, 0, 0, 0, 0 ],[0, 0, 1, 0, 0, 0 ],[0, 3*M, 3*M, 1, 0, 0 ],[2*M, 2*M, 2*M, 0, 1, 0 ], [ -6, -12, -6*(N-1), 0, 0, 1]];
+	M_h_KZM := [[1, 0, 0, 0, -3*N, -3*N], [0, 1, 0, -2*N, -2*N, -2*N ],  [0, 0, 1, 6, 12, 6*(M-1)], [0, 0, 0, 1, 0, 0 ], [ 0, 0, 0, 0, 1, 0 ], [ 0, 0, 0, 0, 0, 1 ] ];
+	M_delta_KZM := [[-2, -3, -3, 3, 3, 3 ],  [N+M-1, N+M, N+M-1, -N-M+1, -N-M+1, -N-M+1 ], [-3, -3, -2, 3, 3, 3 ], [-3, -3, -3, 4, 3, 3 ],  
+	[N+M-1, N+M-1, N+M-1, -N-M+1, -N-M+2, -N-M+1 ], [-3, -3, -3, 3, 3, 4 ] ];
+
+	M_chi_KZM := [[-M-N+4, -2*M-2*N+6, -2*M-2*N+6, -M-N+3, -2*M-2*N+6, -2*M-2*N+6],[-M-N+3,-2*M-2*N+7, -2*M-2*N+6, -M-N+3, -2*M-2*N+6, -2*M-2*N+6],[5,10,11,5,10,10],
+      [M+N-3, 2*M+2*N-6, 2*M+2*N-6, M+N-2, 2*M+2*N-6, 2*M+2*N-6],[M+N-3, 2*M+2*N-6, 2*M+2*N-6, M+N-3, 2*M+2*N-5, 2*M+2*N-6],[-5,-10,-10,-5,-10,-9]];
+	
+	M_gamma_KZM := [[-M-2*N-3, -2*M-4*N-8, -(N-1)*(M+2*N+4), 0, -M-2*N-4,-(m+1)*(M+2*N+4)],[ M, 2*M+1, (N-1)*M, 0, M, (m+1)*M],[ M, 2*M, (N-1)*M+1,0, M, (m+1)*M],
+      [ 2*M, 4*M, 2*(N-1)*M, 1, 2*M, 2*(m+1)*M],[2*M, 4*M, 2*(N-1)*M, 0, 2*M+1, 2*(m+1)*M],[-2*N-4, -4*N-8,-(N-1)*(2*N+4), 0,-2*N-4, -(m+1)*(2*N+4)+1]];
+    
+    M_alpha_KZM := [[-N-m+1,-N-m, (N-4)*(N+m),-N-m,-2*(N+m),-(3+m)*(N+m)],[-N-m,-N-m+1, (N-4)*(N+m), -N-m,-2*(N+m),-(3+m)*(N+m)],[m+6, m+6,-(N-4)*(m+6)+1, m+6,   
+    2*(m+6), (3+m)*(m+6)],
+      [N-6, N-6,-(N-4)*(N-6), N-5, 2*(N-6), (3+m)*(N-6)],[ 2*(N+m), 2*(N+m), -2*(N-4)*(N+m), 2*(N+m), 4*(N+m)+1, 2*(3+m)*(N+m)],
+      [N-6, N-6,-(N-4)*(N-6), N-6, 2*(N-6), (3+m)*(N-6)+1]]; 
+	return rec( M_v_KZM := M_v_KZM, M_h_KZM := M_h_KZM, M_alpha_KZM :=  M_alpha_KZM,  M_delta_KZM := M_delta_KZM, M_chi_KZM := M_chi_KZM, M_gamma_KZM := M_gamma_KZM);
+end;
+
+
+# The following function tests, weather the Kontsevich-Zorich monodromy of the  square-tiled surface O_N_M  (M =4+2*m) is Zariski dense. O_N_M was defined in  section 5.1 of the article  [BKKMNSVW]. This result is used in section 5.2.
+#Input: the integers m and N such that M = 4+2m
+#Output: True if the KZM is dense, false if not.
+IsDense_O_N_M_KZM := function( m, N)
+    local M, J,B,J1, M1, M2, M3, M4, M5, M6, B1, B2, B3, B4, B5, B6, t, t2, t3, t4, t5, t6, K, Matrices, A;
+	
+	M:=4+2*m;
+
+	# intersection form with repect to the basis B^(0) = \{\Sigma_i,Z_i\} f the nontatutological part of the homology of O_{N,M}. 
+	J:=[[0,0,0,0,1,-1],[0,0,0,1,1,-2],[0,0,0,-1,-2,-N-M+1],[0,-1,1,0,0,0],[-1,-1,2,0,0,0],[1,2,N+M-1,0,0,0]];
+
+	#change of basis for nice intersection form
+	B:=[[N+M+2,-2*(N+M+2),0,0,0,1],[0,0,0,0,0,1],[0,-(N+M+2),0,0,0,1],[0,0,-1-N-M,0,1,0],[0,0,1,1,0,0],[0,0,1,0,0,0]];;
+
+	J1:=[[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1],[-1,0,0,0,0,0],[0,-1,0,0,0,0],[0,0,-1,0,0,0]];;
+      
+   
+	# M1,.., M6 are the actions of the Dehn-twists in the following directions on H^(0)_1(O, Q) 
+
+	# dicrection (1,1)
+	M1:=[[-2, -3, -3, 3, 3, 3 ],  [N+M-1, N+M, N+M-1, -N-M+1, -N-M+1, -N-M+1 ], [-3, -3, -2, 3, 3, 3 ], [-3, -3, -3, 4, 3, 3 ],  
+	[N+M-1, N+M-1, N+M-1, -N-M+1, -N-M+2, -N-M+1 ], [-3, -3, -3, 3, 3, 4 ] ];;
+      
+
+	# dicrection (1,-1)
+	M2:=[[-M-N+4, -2*M-2*N+6, -2*M-2*N+6, -M-N+3, -2*M-2*N+6, -2*M-2*N+6],[-M-N+3,-2*M-2*N+7, -2*M-2*N+6, -M-N+3, -2*M-2*N+6, -2*M-2*N+6],[5,10,11,5,10,10],
+	[M+N-3, 2*M+2*N-6, 2*M+2*N-6, M+N-2, 2*M+2*N-6, 2*M+2*N-6],[M+N-3, 2*M+2*N-6, 2*M+2*N-6, M+N-3, 2*M+2*N-5, 2*M+2*N-6],[-5,-10,-10,-5,-10,-9]];;
+     
+
+	# dicrection (1,2)
+	M3:=[[-M-2*N-3, -2*M-4*N-8, -(N-1)*(M+2*N+4), 0, -M-2*N-4,-(m+1)*(M+2*N+4)],[ M, 2*M+1, (N-1)*M, 0, M, (m+1)*M],[ M, 2*M, (N-1)*M+1,0, M, (m+1)*M],
+	[ 2*M, 4*M, 2*(N-1)*M, 1, 2*M, 2*(m+1)*M],[2*M, 4*M, 2*(N-1)*M, 0, 2*M+1, 2*(m+1)*M],[-2*N-4, -4*N-8,-(N-1)*(2*N+4), 0,-2*N-4, -(m+1)*(2*N+4)+1]];;
+      
+
+	# dicrection (1,-2)
+	M4:=[[-N-m+1,-N-m, (N-4)*(N+m),-N-m,-2*(N+m),-(3+m)*(N+m)],[-N-m,-N-m+1, (N-4)*(N+m), -N-m,-2*(N+m),-(3+m)*(N+m)],[m+6, m+6,-(N-4)*(m+6)+1, m+6, 2*(m+6), (3+m)*(m+6)],
+	[N-6, N-6,-(N-4)*(N-6), N-5, 2*(N-6), (3+m)*(N-6)],[ 2*(N+m), 2*(N+m), -2*(N-4)*(N+m), 2*(N+m), 4*(N+m)+1, 2*(3+m)*(N+m)],
+	[N-6, N-6,-(N-4)*(N-6), N-6, 2*(N-6), (3+m)*(N-6)+1]];;
+      
+
+	# dicrection (1,0)
+	M5:=[[1, 0, 0, 0, -3*N, -3*N], [0, 1, 0, -2*N, -2*N, -2*N ],  [0, 0, 1, 6, 12, 6*(M-1)], [0, 0, 0, 1, 0, 0 ], [ 0, 0, 0, 0, 1, 0 ], [ 0, 0, 0, 0, 0, 1 ] ];;
+      
+
+	# dicrection (0,1)
+	M6:=[ [1, 0, 0, 0, 0, 0 ], [0, 1, 0, 0, 0, 0 ],[0, 0, 1, 0, 0, 0 ],[0, 3*M, 3*M, 1, 0, 0 ],[2*M, 2*M, 2*M, 0, 1, 0 ], [ -6, -12, -6*(N-1), 0, 0, 1]];;
+      
+
+	# Change of basis into the lattice
+	B1:=Inverse(B)*M1*B;
+ 	B2:=Inverse(B)*M2*B;
+	B3:=Inverse(B)*M3*B;
+	B4:=Inverse(B)*M4*B;
+	B5:=Inverse(B)*M5*B;
+	B6:=Inverse(B)*M6*B;
+
+
+
+	# taking powers and conjugating in order to get into the normal closure of the transvection.
+	t:=B1;;
+	t2:=Inverse(B2)*t*(B2);
+	t3:=Inverse(B3)*t*(B3);
+	t4:=Inverse(B4)*t*(B4);
+	t5:=Inverse(B5^(N+M+2))*t*(B5^(N+M+2));
+	t6:=Inverse(B6)*t*(B6);
+
+
+	K := Rationals;
+	Matrices := [t,t2,t3,t4,t5,t6] * One(K);
+	A:=Algebra(K, Matrices);
+	if Dimension(A) = 36 then
+		return true; #Print("m=", m, ",N=",N, ",M=",M, ": Full\n");
+	else
+		return false; #Print("m=", m, ",N=",N, ",M=",M,   ": Not full\n");
+	fi;
 end;
 
 
@@ -353,7 +468,7 @@ end;
 
 # We apply DimensionKoZoMondoromy to the origami  Origami ((2, 3, 4)(5, 7, 6), (1, 2, 3, 5, 4, 6, 7)) from section 6.3  in [BKKMNSVW]
 Example4_KZM := function()
-	local O,G,L, A1, A2;
+	local O,G,L, A1, A2, B, Btilde;
 	Print("\n This function computes the dimension of the Kontsevich-Zorich monodromy of the origami O = Origami( (2, 3, 4)(5, 7, 6), (1, 2, 3, 5, 4, 6, 7) ) from section 6.3 in [BKKMNSVW]:\n");
 	O := Origami( (2, 3, 4)(5, 7, 6), (1, 2, 3, 5, 4, 6, 7) );
     G := VeechGroup(O);
@@ -364,25 +479,64 @@ Example4_KZM := function()
     Print("The action of T on the cosets:"); Print(TAction(G)); Print("\n");
     Print("The action of S on the cosets:"); Print(SAction(G)); Print("\n");
     ActionOfMatrixOnNonTaut(O, A1); 
-	Print("\nDimension of the Kontsevich-Zorich monodromy:");Print( DimensionKoZoMondoromy( O ) );
+
+
+	B := [ [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 ] ];
+	Btilde := [ [ 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0 ], 
+	[ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0 ] ];
+
+
+	Print("\nWe finally compute the matrices from section 6.3:");
+	Print("\nD1 =\n");
+	Display( ActionOfMatrixOnHom(O, A1, B ) );
+	Print("D2 =\n");
+	Display( ActionOfMatrixOnHom(O, A2, B ) );	
+	Print("E1 =\n");
+	Display( ActionOfMatrixOnHom(O, A1, Btilde) );
+	Print("E2 =\n");	
+	Display( ActionOfMatrixOnHom(O, A2, Btilde) );
+	Print("\nDimension of the Kontsevich-Zorich monodromy: ");Print( DimensionKoZoMondoromy( O ) );
+
 end;
 
 
+# We check (cf. Section 5.2 in [BKKMNSVW]) for the origamis O_{N,M}  that the algebra generated by  the Kontsevich-Zorich monodromy has full dimension for N in {4,5,...,50} and M = 2m+4 with m in {0,1,2,...,50}.
+Example5_KZM := function()
+	local N,m,M;
+	Print("\nThis function checks whether the algebra generated by the Kontsevich-Zorich monodromy of the origami O_{N,M} has full dimension for N in {4,5,...,50} and M = 2m+4 with m in {0,1,2,...,50}.\n");
+    for N in [4..50] do
+        for m in [0..50] do
+            M := 2*m+4;
+            Print("\n(N,M) = ("); Print(N);Print(",");Print(M);Print("):");Print(IsDense_O_N_M_KZM(m,N));
+        od;
+    od;
+end;
 
 
+# The following function returns the matrix M_delta_KZM (from Section 5.1 in [BKKMNSVW]) which gives the  action of the Dehn-twist in direction (1,1)  with respect to the basis B^(0) = {Sigma_i,Z_i} of the nontatutological part of the homology. The matrix depends on N, M and m for the square-tiled surface O_{N,M} (M = 4+2*m, N > 0).
+BigMatrix1 := function()
+    Print("\nM_delta^(0) = \n");
+    return(M_KZM().M_delta_KZM);   
+end;
 
+# The following function returns the matrix M_chi_KZM (from Section 5.1 in [BKKMNSVW]) which gives the  action of the Dehn-twist in direction (1,-1)  with respect to the basis B^(0) = {Sigma_i,Z_i} of the nontatutological part of the homology. The matrix depends on N, M and m for the square-tiled surface O_{N,M} (M = 4+2*m, N > 0).
+BigMatrix2 := function()
+     Print("\nM_chi^(0) = \n");    
+    return(M_KZM().M_chi_KZM);   
+end;
 
+# The following function returns the matrix M_alpha_KZM (from Section 5.1 in [BKKMNSVW]) which gives the  action of the Dehn-twist in direction (1,-2)  with respect to the basis B^(0) = {Sigma_i,Z_i} of the nontatutological part of the homology. The matrix depends on N, M and m for the square-tiled surface O_{N,M} (M = 4+2*m, N > 0).
+BigMatrix3 := function()
+    Print("\nM_alpha^(0) = \n");     
+    return(M_KZM(). M_alpha_KZM);   
+end;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# The following function returns the matrix M_gamma_KZM (from Section 5.1 in [BKKMNSVW]) which gives the  action of the Dehn-twist in direction (1,2)  with respect to the basis B^(0) = {Sigma_i,Z_i} of the nontatutological part of the homology. The matrix depends on N, M and m for the square-tiled surface O_{N,M} (M = 4+2*m, N > 0).
+BigMatrix4 := function()
+    Print("\nM_gamma^(0) = \n");   
+    return(M_KZM().M_gamma_KZM);   
+end;
